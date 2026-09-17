@@ -1,0 +1,1099 @@
+
+/* ============================================================
+   HAPPY BIRTHDAY — a birthday film in four acts
+   Vanilla + GSAP. One page, one continuous piece:
+     1. a beating heart you open with a tap
+     2. it falls, and bursts into a flood of rose
+     3. a kinetic wish hinges up out of that colour
+     4. a gold light blooms, and a tree grows into a heart
+   One grain + vignette lens sits over all of it.
+   ============================================================ */
+
+:root{
+  /* --- warm paper (Act 1 + the tree's dawn) --- */
+  --paper-0:  #fff6ee;
+  --paper-1:  #f9e2d2;
+  --paper-2:  #f2c9b8;
+
+  /* --- rose flood (Acts 2–3) --- */
+  --rose-deep: #a80f43;
+  --rose:      #d4235c;
+  --rose-lift: #ff5f86;
+  --wine:      #6e0a31;
+
+  /* --- accents / ink --- */
+  --gold-1:    #ffcf6a;
+  --gold-2:    #e8a23d;
+  --ink:       #7a4a55;
+  --ink-soft:  #a9808a;
+  --cream:     #fff3ea;
+
+  --ease-out:  cubic-bezier(.2,.7,.2,1);
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+html, body{
+  height:100%;
+}
+
+body{
+  background:#12060c;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  cursor:auto;
+}
+
+.scene{
+  position:fixed;
+  inset:0;
+  overflow:hidden;
+}
+
+.sr-only{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  white-space:nowrap;
+  border:0;
+}
+
+/* ============================================================
+   THE TREE CANVAS (Act 4)
+   ============================================================ */
+
+.tree{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+  z-index:1;
+}
+
+/* ============================================================
+   ACT 1 — THE INVITATION
+   ============================================================ */
+
+.hero{
+  position:absolute;
+  inset:0;
+  z-index:3;
+  overflow:hidden;
+}
+
+.hero__bg{
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(
+      120% 88% at 50% 24%,
+      #fff8f1 0%,
+      var(--paper-0) 38%,
+      var(--paper-1) 74%,
+      var(--paper-2) 100%
+    );
+}
+
+.hero__bg::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:44%;
+  width:min(78vw,720px);
+  aspect-ratio:1;
+  transform:translate(-50%,-50%);
+  background:
+    radial-gradient(
+      circle,
+      rgba(255,190,150,.55),
+      rgba(255,150,170,.16) 46%,
+      transparent 70%
+    );
+  filter:blur(6px);
+}
+
+/* drifting light motes */
+
+.hero__motes{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+
+.mote{
+  position:absolute;
+  border-radius:50%;
+  background:
+    radial-gradient(
+      circle,
+      rgba(255,236,214,.9),
+      rgba(255,206,180,.15) 55%,
+      transparent 72%
+    );
+  will-change:transform, opacity;
+}
+
+.hero__eyebrow{
+  position:absolute;
+  top:13%;
+  left:0;
+  right:0;
+  text-align:center;
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-style:italic;
+  font-weight:600;
+  font-size:clamp(15px, 3.6vw, 26px);
+  letter-spacing:.06em;
+  color:#a85069;
+  text-shadow:0 1px 10px rgba(255,248,241,.9);
+  opacity:0;
+}
+
+/* ---- the target heart ---- */
+
+.targetWrap{
+  position:absolute;
+  top:33%;
+  left:0;
+  right:0;
+  display:flex;
+  justify-content:center;
+  transform:translateY(-50%);
+  pointer-events:none;
+}
+
+.target{
+  position:relative;
+  width:clamp(120px, 27vw, 208px);
+  aspect-ratio:100/92;
+  will-change:transform;
+  transform-origin:50% 60%;
+}
+
+.target__heart{
+  position:absolute;
+  inset:0;
+  display:block;
+}
+
+.heart__glow{
+  position:absolute;
+  left:50%;
+  top:52%;
+  width:230%;
+  aspect-ratio:1;
+  transform:translate(-50%,-50%) scale(1);
+  border-radius:50%;
+  background:
+    radial-gradient(
+      circle,
+      rgba(255,120,150,.55),
+      rgba(255,90,130,.18) 42%,
+      transparent 68%
+    );
+  filter:blur(4px);
+  pointer-events:none;
+  will-change:transform, opacity;
+}
+
+.heart__svg{
+  width:100%;
+  height:100%;
+  display:block;
+  transform-origin:50% 60%;
+  filter:
+    drop-shadow(0 10px 22px rgba(168,15,64,.34))
+    drop-shadow(0 3px 6px rgba(120,10,48,.30));
+  will-change:transform;
+}
+
+/* ---- the bow + arrow rig ---- */
+
+.archery{
+  position:absolute;
+  top:0;
+  left:0;
+  width:clamp(100px, 18vw, 168px);
+  cursor:grab;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:none;
+  will-change:transform;
+}
+
+.archery:active{
+  cursor:grabbing;
+}
+
+.archery:focus-visible{
+  outline:none;
+}
+
+.archery:focus-visible .bow{
+  filter:
+    drop-shadow(0 0 0 3px rgba(255,255,255,.85))
+    drop-shadow(0 10px 18px rgba(120,50,20,.4));
+}
+
+.bow{
+  display:block;
+  width:100%;
+  height:auto;
+  filter:drop-shadow(0 12px 18px rgba(90,40,15,.3));
+  overflow:visible;
+}
+
+.aim{
+  position:absolute;
+  left:50%;
+  bottom:32%;
+  width:2px;
+  height:190%;
+  margin-left:-1px;
+  transform-origin:bottom center;
+  background:
+    linear-gradient(
+      0deg,
+      rgba(255,214,150,.6) 0%,
+      rgba(255,150,170,.22) 52%,
+      transparent 78%
+    );
+  opacity:0;
+  pointer-events:none;
+}
+
+.arrow{
+  position:absolute;
+  left:0;
+  right:0;
+  margin-inline:auto;
+  bottom:36%;
+  width:17.5%;
+  height:auto;
+  overflow:visible;
+  will-change:transform;
+  filter:drop-shadow(0 5px 7px rgba(90,40,15,.36));
+}
+
+.arrow__wings{
+  transform-box:fill-box;
+  transform-origin:50% 90%;
+}
+
+.arrow__wings .wingL,
+.arrow__wings .wingR{
+  transform-box:fill-box;
+}
+
+.wingL{
+  transform-origin:88% 60%;
+  animation:flapL 2.6s ease-in-out infinite;
+}
+
+.wingR{
+  transform-origin:12% 60%;
+  animation:flapR 2.6s ease-in-out infinite;
+}
+
+@keyframes flapL{
+  0%,100%{ transform:rotate(0deg); }
+  50%{ transform:rotate(-11deg); }
+}
+
+@keyframes flapR{
+  0%,100%{ transform:rotate(0deg); }
+  50%{ transform:rotate(11deg); }
+}
+
+/* ---- the draw / release hint ---- */
+
+.hero__hint{
+  position:absolute;
+  bottom:8.5%;
+  left:0;
+  right:0;
+  text-align:center;
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-weight:600;
+  font-style:italic;
+  font-size:clamp(13px, 3.1vw, 19px);
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:#b06a7c;
+  opacity:0;
+}
+
+.hero__ring{
+  display:none;
+}
+
+/* ============================================================
+   ACT 2 — THE FLOOD
+   ============================================================ */
+
+.flood{
+  position:absolute;
+  inset:0;
+  z-index:4;
+  pointer-events:none;
+  overflow:hidden;
+  background:var(--rose);
+  clip-path:circle(0% at 50% 50%);
+}
+
+.flood::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(
+      ellipse at 50% 20%,
+      rgba(255,140,165,.28),
+      transparent 65%
+    );
+}
+
+.flood::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.05),
+      transparent 50%
+    );
+}
+
+/* ============================================================
+   ACT 3 — THE WISH
+   ============================================================ */
+
+.field{
+  position:absolute;
+  inset:0;
+  z-index:5;
+  overflow:hidden;
+  background:
+    radial-gradient(
+      ellipse at 50% 40%,
+      #e93569 0%,
+      var(--rose) 45%,
+      var(--rose-deep) 100%
+    );
+  opacity:0;
+  pointer-events:none;
+}
+
+.blob{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(1px);
+  opacity:.45;
+  pointer-events:none;
+}
+
+.blob--1{
+  width:70vw;
+  height:70vw;
+  left:-25vw;
+  top:-20vw;
+  background:rgba(255,126,155,.35);
+}
+
+.blob--2{
+  width:60vw;
+  height:60vw;
+  right:-20vw;
+  bottom:-20vw;
+  background:rgba(107,5,42,.3);
+}
+
+.blob--3{
+  width:40vw;
+  height:40vw;
+  left:40%;
+  top:30%;
+  background:rgba(255,90,130,.2);
+}
+
+.fgrid{
+  position:absolute;
+  inset:0;
+  opacity:.16;
+  background-image:
+    linear-gradient(
+      rgba(255,255,255,.25) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,.25) 1px,
+      transparent 1px
+    );
+  background-size:50px 50px;
+  mask-image:linear-gradient(
+    to bottom,
+    transparent,
+    black 30%,
+    black 70%,
+    transparent
+  );
+}
+
+.fvignette{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(
+      ellipse at center,
+      transparent 30%,
+      rgba(70,0,30,.28) 100%
+    );
+}
+
+.camera{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:20px;
+  color:var(--cream);
+}
+
+.kEyebrow{
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-size:clamp(15px, 3.6vw, 24px);
+  font-style:italic;
+  font-weight:600;
+  letter-spacing:.08em;
+  opacity:0;
+}
+
+.headline{
+  margin-top:clamp(14px, 3vw, 26px);
+  font-family:"Fraunces", Georgia, serif;
+  font-weight:900;
+  font-size:clamp(48px, 12vw, 128px);
+  line-height:.9;
+  letter-spacing:-.055em;
+  text-transform:uppercase;
+  color:#fff4ed;
+}
+
+.hl__line{
+  display:block;
+  overflow:hidden;
+}
+
+.mask{
+  display:block;
+  overflow:hidden;
+}
+
+.hl__word{
+  display:inline-block;
+  transform:translateY(110%);
+  will-change:transform;
+}
+
+.uline{
+  width:min(300px, 65vw);
+  margin-top:clamp(14px, 3vw, 24px);
+  overflow:visible;
+}
+
+.uline__path{
+  stroke-dasharray:340;
+  stroke-dashoffset:340;
+}
+
+.kSub{
+  margin-top:clamp(16px, 3vw, 24px);
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-size:clamp(15px, 3.8vw, 25px);
+  font-style:italic;
+  letter-spacing:.03em;
+  opacity:0;
+}
+
+.bar{
+  position:absolute;
+  left:0;
+  right:0;
+  height:12px;
+  background:rgba(255,240,224,.85);
+  transform:scaleX(0);
+}
+
+.bar--top{
+  top:0;
+  transform-origin:left center;
+}
+
+.bar--bot{
+  bottom:0;
+  transform-origin:right center;
+}
+
+/* ============================================================
+   GOLD BLOOM TRANSITION
+   ============================================================ */
+
+.bloom{
+  position:absolute;
+  inset:0;
+  z-index:6;
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      #fff5ce 0%,
+      #ffcf6a 22%,
+      #e8a23d 55%,
+      #a85a17 100%
+    );
+  clip-path:circle(0% at 50% 50%);
+  pointer-events:none;
+}
+
+/* ============================================================
+   ACT 4 — THE FINAL WISH
+   ============================================================ */
+
+.wish{
+  position:absolute;
+  inset:0;
+  z-index:7;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:30px;
+  opacity:0;
+  pointer-events:none;
+  color:#6e4325;
+}
+
+.wish__eyebrow{
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-size:clamp(16px, 3.8vw, 26px);
+  font-style:italic;
+  font-weight:600;
+  letter-spacing:.08em;
+  opacity:0;
+}
+
+.wish__heroWrap{
+  overflow:hidden;
+  max-width:100%;
+}
+
+.wish__hero{
+  font-family:"Great Vibes", cursive;
+  font-weight:400;
+  font-size:clamp(55px, 13vw, 145px);
+  line-height:1.05;
+  color:#8a4f30;
+  text-shadow:
+    0 2px 0 rgba(255,255,255,.5),
+    0 4px 18px rgba(105,50,20,.1);
+  transform:translateY(110%);
+  will-change:transform;
+}
+
+.wish__rule{
+  display:block;
+  width:0;
+  height:1px;
+  margin:clamp(18px, 4vw, 32px) auto;
+  background:rgba(125,73,36,.5);
+}
+
+.wish__sub{
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-size:clamp(17px, 4vw, 28px);
+  font-style:italic;
+  font-weight:600;
+  letter-spacing:.03em;
+  opacity:0;
+}
+
+/* ============================================================
+   REPLAY
+   ============================================================ */
+
+.replay{
+  position:absolute;
+  z-index:20;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:10px 18px;
+  border:1px solid rgba(125,73,36,.35);
+  border-radius:999px;
+  background:rgba(255,246,238,.65);
+  color:#7a4a35;
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-size:16px;
+  font-weight:600;
+  letter-spacing:.06em;
+  cursor:pointer;
+  backdrop-filter:blur(8px);
+  transition:
+    background .25s ease,
+    transform .25s ease;
+}
+
+.replay:hover{
+  background:rgba(255,246,238,.95);
+  transform:translateX(-50%) translateY(-2px);
+}
+
+.replay:focus-visible{
+  outline:2px solid #7a4a35;
+  outline-offset:4px;
+}
+
+/* ============================================================
+   FILM GRAIN + VIGNETTE
+   ============================================================ */
+
+.grade{
+  position:absolute;
+  inset:0;
+  z-index:30;
+  pointer-events:none;
+  overflow:hidden;
+}
+
+.grade__vignette{
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(
+      ellipse at center,
+      transparent 45%,
+      rgba(30,8,12,.18) 100%
+    );
+  mix-blend-mode:multiply;
+}
+
+.grade__grain{
+  position:absolute;
+  inset:-50%;
+  opacity:.12;
+  background-image:url("./dist/textures/grain.png");
+  background-repeat:repeat;
+  background-size:256px 256px;
+  animation:grainMove .18s steps(2) infinite;
+  pointer-events:none;
+}
+
+@keyframes grainMove{
+  0%{ transform:translate(0,0); }
+  25%{ transform:translate(2%,-3%); }
+  50%{ transform:translate(-3%,2%); }
+  75%{ transform:translate(3%,3%); }
+  100%{ transform:translate(-2%,-2%); }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width:600px){
+  .hero__eyebrow{
+    top:12%;
+  }
+
+  .targetWrap{
+    top:32%;
+  }
+
+  .archery{
+    width:clamp(100px, 28vw, 145px);
+  }
+
+  .hero__hint{
+    bottom:9%;
+    font-size:13px;
+  }
+
+  .headline{
+    font-size:clamp(42px, 13vw, 90px);
+  }
+
+  .wish{
+    padding:20px;
+  }
+
+  .wish__hero{
+    font-size:clamp(50px, 15vw, 90px);
+  }
+
+  .replay{
+    bottom:18px;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,
+  *::before,
+  *::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+
+  .grade__grain{
+    animation:none;
+  }
+}
+
+  /* purely decorative — must never intercept the tap on the heart beneath it.
+     An opacity:0 element is still hit-testable, so without this the invisible
+     field (z4, above the hero z3) swallows every Act-1 tap. */
+  pointer-events:none;
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse at 50% 40%, #e93569 0%, var(--rose) 45%, var(--rose-deep) 100%);
+}
+.field::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(ellipse at 50% 25%, rgba(255,155,180,.22), transparent 62%),
+    radial-gradient(ellipse at 50% 100%, rgba(70,0,30,.18), transparent 65%);
+  pointer-events:none;
+}
+.blob{
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+  will-change:transform, opacity;
+  filter:blur(1px);
+  opacity:.6;
+}
+.blob--1{
+  width:70vw;
+  height:70vw;
+  left:-25vw;
+  top:-20vw;
+  background:rgba(255,126,155,.35);
+}
+.blob--2{
+  width:60vw;
+  height:60vw;
+  right:-20vw;
+  bottom:-20vw;
+  background:rgba(107,5,42,.3);
+}
+.blob--3{
+  width:40vw;
+  height:40vw;
+  left:40%;
+  top:30%;
+  background:rgba(255,90,130,.2);
+}
+.fgrid{
+  position:absolute;
+  inset:0;
+  opacity:.16;
+  background-image:
+    linear-gradient(rgba(255,255,255,.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.25) 1px, transparent 1px);
+  background-size:50px 50px;
+  mask-image:linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
+}
+.fvignette{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:radial-gradient(ellipse at center, transparent 30%, rgba(70,0,30,.28) 100%);
+}
+.camera{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:20px;
+  color:var(--cream);
+}
+.kEyebrow{
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-size:clamp(15px, 3.6vw, 24px);
+  font-style:italic;
+  font-weight:600;
+  letter-spacing:.08em;
+  opacity:0;
+}
+.headline{
+  margin-top:clamp(14px, 3vw, 26px);
+  font-family:"Fraunces", Georgia, serif;
+  font-weight:900;
+  font-size:clamp(48px, 12vw, 128px);
+  line-height:.9;
+  letter-spacing:-.055em;
+  text-transform:uppercase;
+  color:#fff4ed;
+}
+.hl__line{
+  display:block;
+  overflow:hidden;
+}
+.mask{
+  display:block;
+  overflow:hidden;
+}
+.hl__word{
+  display:inline-block;
+  transform:translateY(110%);
+  will-change:transform;
+}
+.uline{
+  width:min(300px, 65vw);
+  margin-top:clamp(14px, 3vw, 24px);
+  overflow:visible;
+}
+.uline__path{
+  stroke-dasharray:340;
+  stroke-dashoffset:340;
+}
+.kSub{
+  margin-top:clamp(16px, 3vw, 24px);
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-size:clamp(15px, 3.8vw, 25px);
+  font-style:italic;
+  letter-spacing:.03em;
+  opacity:0;
+}
+.bar{
+  position:absolute;
+  left:0;
+  right:0;
+  height:12px;
+  background:rgba(255,240,224,.85);
+  transform:scaleX(0);
+}
+.bar--top{
+  top:0;
+  transform-origin:left center;
+}
+.bar--bot{
+  bottom:0;
+  transform-origin:right center;
+}
+
+/* ============================================================
+   GOLD BLOOM TRANSITION
+   ============================================================ */
+
+.bloom{
+  position:absolute;
+  inset:0;
+  z-index:6;
+  background:
+    radial-gradient(circle at 50% 50%, #fff5ce 0%, #ffcf6a 22%, #e8a23d 55%, #a85a17 100%);
+  clip-path:circle(0% at 50% 50%);
+  pointer-events:none;
+}
+
+/* ============================================================
+   ACT 4 — THE FINAL WISH
+   ============================================================ */
+
+.wish{
+  position:absolute;
+  inset:0;
+  z-index:7;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:30px;
+  opacity:0;
+  pointer-events:none;
+  color:#6e4325;
+}
+.wish__eyebrow{
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-size:clamp(16px, 3.8vw, 26px);
+  font-style:italic;
+  font-weight:600;
+  letter-spacing:.08em;
+  opacity:0;
+}
+.wish__heroWrap{
+  overflow:hidden;
+  max-width:100%;
+}
+.wish__hero{
+  font-family:"Great Vibes", cursive;
+  font-weight:400;
+  font-size:clamp(55px, 13vw, 145px);
+  line-height:1.05;
+  color:#8a4f30;
+  text-shadow:
+    0 2px 0 rgba(255,255,255,.5),
+    0 4px 18px rgba(105,50,20,.1);
+  transform:translateY(110%);
+  will-change:transform;
+}
+.wish__rule{
+  display:block;
+  width:0;
+  height:1px;
+  margin:clamp(18px, 4vw, 32px) auto;
+  background:rgba(125,73,36,.5);
+}
+.wish__sub{
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-size:clamp(17px, 4vw, 28px);
+  font-style:italic;
+  font-weight:600;
+  letter-spacing:.03em;
+  opacity:0;
+}
+
+/* ============================================================
+   REPLAY
+   ============================================================ */
+
+.replay{
+  position:absolute;
+  z-index:20;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:10px 18px;
+  border:1px solid rgba(125,73,36,.35);
+  border-radius:999px;
+  background:rgba(255,246,238,.65);
+  color:#7a4a35;
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-size:16px;
+  font-weight:600;
+  letter-spacing:.06em;
+  cursor:pointer;
+  backdrop-filter:blur(8px);
+  transition:
+    background .25s ease,
+    transform .25s ease;
+}
+.replay:hover{
+  background:rgba(255,246,238,.95);
+  transform:translateX(-50%) translateY(-2px);
+}
+.replay:focus-visible{
+  outline:2px solid #7a4a35;
+  outline-offset:4px;
+}
+
+/* ============================================================
+   FILM GRAIN + VIGNETTE
+   ============================================================ */
+
+.grade{
+  position:absolute;
+  inset:0;
+  z-index:30;
+  pointer-events:none;
+  overflow:hidden;
+}
+.grade__vignette{
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(ellipse at center, transparent 45%, rgba(30,8,12,.18) 100%);
+  mix-blend-mode:multiply;
+}
+.grade__grain{
+  position:absolute;
+  inset:-50%;
+  opacity:.12;
+  background-image:url("./dist/textures/grain.png");
+  background-repeat:repeat;
+  background-size:256px 256px;
+  animation:grainMove .18s steps(2) infinite;
+  pointer-events:none;
+}
+@keyframes grainMove{
+  0%{ transform:translate(0,0); }
+  25%{ transform:translate(2%,-3%); }
+  50%{ transform:translate(-3%,2%); }
+  75%{ transform:translate(3%,3%); }
+  100%{ transform:translate(-2%,-2%); }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width:600px){
+  .hero__eyebrow{
+    top:12%;
+  }
+  .targetWrap{
+    top:32%;
+  }
+  .archery{
+    width:clamp(100px, 28vw, 145px);
+  }
+  .hero__hint{
+    bottom:9%;
+    font-size:13px;
+  }
+  .headline{
+    font-size:clamp(42px, 13vw, 90px);
+  }
+  .wish{
+    padding:20px;
+  }
+  .wish__hero{
+    font-size:clamp(50px, 15vw, 90px);
+  }
+  .replay{
+    bottom:18px;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  *,
+  *::before,
+  *::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+  .grade__grain{
+    animation:none;
+  }
+}
